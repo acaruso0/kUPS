@@ -18,6 +18,7 @@ neighbor lists.
 - **[Morse][kups.potential.classical.morse]**: Anharmonic bond stretching with proper dissociation
 - **[Dihedral][kups.potential.classical.uff_dihedral]**: Torsion potentials (UFF-style)
 - **[Inversion][kups.potential.classical.uff_inversion]**: Out-of-plane/improper potentials (UFF-style)
+- **[Repulsion][kups.potential.classical.repulsion]**: Power-law and exponential excluded-volume repulsion
 
 Each potential provides a `make_*_potential` factory function that constructs a
 configured [Potential][kups.core.potential.Potential] instance.
@@ -50,6 +51,20 @@ from .lennard_jones import (
     make_pair_tail_corrected_lennard_jones_potential,
 )
 from .morse import MorseBondParameters, make_morse_bond_potential
+from .repulsion import (
+    CutoffExpRepulsionParameters,
+    CutoffRepulsionParameters,
+    ExpRepulsionParameters,
+    RepulsionParameters,
+    cutoff_exp_repulsion_energy,
+    cutoff_repulsion_energy,
+    exp_repulsion_energy,
+    make_cutoff_exp_repulsion_potential,
+    make_cutoff_repulsion_potential,
+    make_exp_repulsion_potential,
+    make_repulsion_potential,
+    repulsion_energy,
+)
 
 __all__ = [
     "make_uff_cosine_angle_potential",
@@ -59,6 +74,10 @@ __all__ = [
     "make_harmonic_bond_potential",
     "make_uff_inversion_potential",
     "make_morse_bond_potential",
+    "make_repulsion_potential",
+    "make_cutoff_repulsion_potential",
+    "make_exp_repulsion_potential",
+    "make_cutoff_exp_repulsion_potential",
     "make_lennard_jones_potential",
     "make_global_lennard_jones_tail_correction_potential",
     "make_pair_tail_corrected_lennard_jones_potential",
@@ -71,6 +90,14 @@ __all__ = [
     "UFFInversionParameters",
     "uff_inversion_energy",
     "MorseBondParameters",
+    "RepulsionParameters",
+    "repulsion_energy",
+    "CutoffRepulsionParameters",
+    "cutoff_repulsion_energy",
+    "ExpRepulsionParameters",
+    "exp_repulsion_energy",
+    "CutoffExpRepulsionParameters",
+    "cutoff_exp_repulsion_energy",
     "LennardJonesParameters",
     "GlobalTailCorrectedLennardJonesParameters",
     "PairTailCorrectedLennardJonesParameters",
