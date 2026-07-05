@@ -9,7 +9,7 @@ import pytest
 
 from kups.core.data.index import Index
 from kups.core.neighborlist import Edges
-from kups.potential.classical.inversion import InversionParameters, inversion_energy
+from kups.potential.classical.uff_inversion import UFFInversionParameters, uff_inversion_energy
 from kups.potential.common.graph import GraphPotentialInput, HyperGraph
 
 from .conftest import make_particles, make_systems
@@ -21,7 +21,7 @@ _SINGLE_SYSTEM_IDS = [0, 0, 0, 0]
 _SINGLE_CELLS_LV = jnp.eye(3)[None] * 10.0
 
 
-def _single_inversion_energy(positions: jax.Array, params: InversionParameters):
+def _single_inversion_energy(positions: jax.Array, params: UFFInversionParameters):
     """Energy of one A-A-A-A inversion; params traced for grad/jit reuse."""
     particles = make_particles(positions, _SINGLE_SPECIES, _SINGLE_SYSTEM_IDS)
     systems = make_systems(_SINGLE_CELLS_LV)
@@ -30,7 +30,7 @@ def _single_inversion_energy(positions: jax.Array, params: InversionParameters):
         shifts=jnp.zeros((1, 3, 3)),
     )
     graph = HyperGraph(particles, systems, edges)
-    return inversion_energy(
+    return uff_inversion_energy(
         GraphPotentialInput(graph=graph, parameters=params)
     ).data.data[0]
 
@@ -65,7 +65,7 @@ def _compute_omega(h: float) -> jax.Array:
 
 
 class TestInversionEnergy:
-    """Test the inversion_energy function."""
+    """Test the uff_inversion_energy function."""
 
     @classmethod
     def setup_class(cls):
@@ -75,7 +75,7 @@ class TestInversionEnergy:
         shape = (2, 2, 2, 2)
         cls.omega0 = jnp.zeros(shape)
         cls.k = jnp.ones(shape) * 10.0
-        cls.params = InversionParameters(labels=_LABELS, omega0=cls.omega0, k=cls.k)
+        cls.params = UFFInversionParameters(labels=_LABELS, omega0=cls.omega0, k=cls.k)
 
     def _make_graph(self, positions):
         particles = make_particles(positions, self.species, self.system_ids)
@@ -124,7 +124,7 @@ class TestInversionEnergy:
         omega0_rad = jnp.radians(30.0)
         shape = (2, 2, 2, 2)
         barrier = 22.0
-        params = InversionParameters(
+        params = UFFInversionParameters(
             labels=_LABELS,
             omega0=jnp.ones(shape) * omega0_rad,
             k=jnp.ones(shape) * barrier,
@@ -137,7 +137,7 @@ class TestInversionEnergy:
         omega0_rad = jnp.radians(30.0)
         shape = (2, 2, 2, 2)
         barrier = 10.0
-        params = InversionParameters(
+        params = UFFInversionParameters(
             labels=_LABELS,
             omega0=jnp.ones(shape) * omega0_rad,
             k=jnp.ones(shape) * barrier,
@@ -157,7 +157,7 @@ class TestInversionEnergy:
         assert jnp.isclose(self._energy(positions, params), expected, rtol=1e-4)
 
     def test_zero_force_constant(self):
-        params = InversionParameters(
+        params = UFFInversionParameters(
             labels=_LABELS, omega0=self.omega0, k=jnp.zeros_like(self.k)
         )
         positions = _make_positions(0.5)
@@ -175,7 +175,7 @@ class TestInversionEnergy:
         )
         graph = HyperGraph(particles, systems, edges)
         with pytest.raises(AssertionError, match="4-body interactions"):
-            inversion_energy(GraphPotentialInput(graph=graph, parameters=self.params))
+            uff_inversion_energy(GraphPotentialInput(graph=graph, parameters=self.params))
 
     def test_different_species(self):
         species = ["A", "B", "B", "A"]
@@ -188,7 +188,7 @@ class TestInversionEnergy:
             shifts=jnp.zeros((1, 3, 3)),
         )
         graph = HyperGraph(particles, systems, edges)
-        result = inversion_energy(
+        result = uff_inversion_energy(
             GraphPotentialInput(graph=graph, parameters=self.params)
         )
         assert jnp.isclose(result.data.data[0], 0.0, atol=1e-6)
@@ -205,7 +205,7 @@ class TestInversionEnergy:
             shifts=jnp.zeros((3, 3, 3)),
         )
         graph = HyperGraph(particles, systems, edges)
-        result = inversion_energy(
+        result = uff_inversion_energy(
             GraphPotentialInput(graph=graph, parameters=self.params)
         )
         assert result.data.data[0] > 0.0
@@ -222,7 +222,7 @@ class TestInversionEnergy:
             shifts=jnp.zeros((2, 3, 3)),
         )
         graph = HyperGraph(particles, systems, edges)
-        result = inversion_energy(
+        result = uff_inversion_energy(
             GraphPotentialInput(graph=graph, parameters=self.params)
         )
         assert result.data.data.shape == (2,)

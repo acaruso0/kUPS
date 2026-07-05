@@ -14,21 +14,21 @@ neighbor lists.
 - **[Coulomb][kups.potential.classical.coulomb]**: Electrostatic interactions
 - **[Ewald][kups.potential.classical.ewald]**: Long-range electrostatics via Ewald summation
 - **[Harmonic][kups.potential.classical.harmonic]**: Bonded interactions (bonds, angles)
-- **[Cosine Angle][kups.potential.classical.cosine_angle]**: UFF-style cosine angle bending
+- **[Cosine Angle][kups.potential.classical.uff_cosine_angle]**: UFF-style cosine angle bending
 - **[Morse][kups.potential.classical.morse]**: Anharmonic bond stretching with proper dissociation
-- **[Dihedral][kups.potential.classical.dihedral]**: Torsion potentials (UFF-style)
-- **[Inversion][kups.potential.classical.inversion]**: Out-of-plane/improper potentials (UFF-style)
+- **[Dihedral][kups.potential.classical.uff_dihedral]**: Torsion potentials (UFF-style)
+- **[Inversion][kups.potential.classical.uff_inversion]**: Out-of-plane/improper potentials (UFF-style)
 
 Each potential provides a `make_*_potential` factory function that constructs a
 configured [Potential][kups.core.potential.Potential] instance.
 """
 
-from .cosine_angle import (
-    CosineAngleParameters,
-    cosine_angle_energy,
-    make_cosine_angle_potential,
+from .uff_cosine_angle import (
+    UFFCosineAngleParameters,
+    uff_cosine_angle_energy,
+    make_uff_cosine_angle_potential,
 )
-from .dihedral import DihedralParameters, make_dihedral_potential
+from .uff_dihedral import UFFDihedralParameters, make_uff_dihedral_potential
 from .ewald import EwaldParameters, make_ewald_potential
 from .harmonic import (
     HarmonicAngleParameters,
@@ -36,10 +36,10 @@ from .harmonic import (
     make_harmonic_angle_potential,
     make_harmonic_bond_potential,
 )
-from .inversion import (
-    InversionParameters,
-    inversion_energy,
-    make_inversion_potential,
+from .uff_inversion import (
+    UFFInversionParameters,
+    uff_inversion_energy,
+    make_uff_inversion_potential,
 )
 from .lennard_jones import (
     GlobalTailCorrectedLennardJonesParameters,
@@ -52,24 +52,24 @@ from .lennard_jones import (
 from .morse import MorseBondParameters, make_morse_bond_potential
 
 __all__ = [
-    "make_cosine_angle_potential",
-    "make_dihedral_potential",
+    "make_uff_cosine_angle_potential",
+    "make_uff_dihedral_potential",
     "make_ewald_potential",
     "make_harmonic_angle_potential",
     "make_harmonic_bond_potential",
-    "make_inversion_potential",
+    "make_uff_inversion_potential",
     "make_morse_bond_potential",
     "make_lennard_jones_potential",
     "make_global_lennard_jones_tail_correction_potential",
     "make_pair_tail_corrected_lennard_jones_potential",
-    "CosineAngleParameters",
-    "cosine_angle_energy",
-    "DihedralParameters",
+    "UFFCosineAngleParameters",
+    "uff_cosine_angle_energy",
+    "UFFDihedralParameters",
     "EwaldParameters",
     "HarmonicAngleParameters",
     "HarmonicBondParameters",
-    "InversionParameters",
-    "inversion_energy",
+    "UFFInversionParameters",
+    "uff_inversion_energy",
     "MorseBondParameters",
     "LennardJonesParameters",
     "GlobalTailCorrectedLennardJonesParameters",

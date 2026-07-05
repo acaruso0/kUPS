@@ -77,7 +77,7 @@ class IsBondedParticles(HasPositionsAndLabels, IsRadiusGraphPoints, Protocol):
 
 
 @dataclass
-class InversionParameters:
+class UFFInversionParameters:
     r"""UFF-style inversion potential parameters.
 
     Attributes:
@@ -98,7 +98,7 @@ class InversionParameters:
         labels: tuple[str, ...],
         inversion_barrier: Array,
         omega0: Array | None = None,
-    ) -> "InversionParameters":
+    ) -> "UFFInversionParameters":
         r"""Create inversion parameters using UFF formulas.
 
         Args:
@@ -107,7 +107,7 @@ class InversionParameters:
             omega0: Equilibrium angle [radians], shape `(n_species,)`.
 
         Returns:
-            InversionParameters with full interaction matrices
+            UFFInversionParameters with full interaction matrices
         """
         nt = inversion_barrier.shape[0]
 
@@ -122,13 +122,13 @@ class InversionParameters:
         return cls(labels=tuple(map(Label, labels)), omega0=omega0_arr, k=k_arr)
 
 
-type InversionInput = GraphPotentialInput[
-    InversionParameters, IsBondedParticles, HasCell[AnyPeriodicity], Literal[4]
+type UFFInversionInput = GraphPotentialInput[
+    UFFInversionParameters, IsBondedParticles, HasCell[AnyPeriodicity], Literal[4]
 ]
 
 
-def inversion_energy(
-    inp: InversionInput,
+def uff_inversion_energy(
+    inp: UFFInversionInput,
 ) -> WithPatch[Table[SystemId, Energy], IdPatch[Any]]:
     r"""Compute UFF-style inversion energy for all inversion centers.
 
@@ -201,7 +201,7 @@ def inversion_energy(
     return WithPatch(total_energies, IdPatch[Any]())
 
 
-def make_inversion_potential[
+def make_uff_inversion_potential[
     State,
     Ptch: Patch[Any],
     Gradients,
@@ -210,9 +210,9 @@ def make_inversion_potential[
     particles_view: View[State, Table[ParticleId, IsBondedParticles]],
     edge_indices_view: View[State, Index[ParticleId]],
     systems_view: View[State, Table[SystemId, HasCell[AnyPeriodicity]]],
-    parameter_view: View[State, InversionParameters],
+    parameter_view: View[State, UFFInversionParameters],
     probe: Probe[State, Ptch, IsGraphProbe[IsBondedParticles, Literal[4]]] | None,
-    gradient_lens: Lens[InversionInput, Gradients],
+    gradient_lens: Lens[UFFInversionInput, Gradients],
     hessian_lens: Lens[Gradients, Hessians],
     hessian_idx_view: View[State, Hessians],
     patch_idx_view: View[State, PotentialOut[Gradients, Hessians]] | None = None,
@@ -224,7 +224,7 @@ def make_inversion_potential[
         particles_view: Extracts particle data (positions, species) with system index
         edge_indices_view: Extracts inversion connectivity (4-tuples: center + 3 neighbors)
         systems_view: Extracts indexed system data (cell)
-        parameter_view: Extracts [InversionParameters][kups.potential.classical.inversion.InversionParameters]
+        parameter_view: Extracts [UFFInversionParameters][kups.potential.classical.uff_inversion.UFFInversionParameters]
         probe: Graph probe for incremental particle and neighbor-list updates
         gradient_lens: Specifies gradients to compute
         hessian_lens: Specifies Hessians to compute
@@ -249,7 +249,7 @@ def make_inversion_potential[
     )
     potential = PotentialFromEnergy(
         composer=composer,
-        energy_fn=inversion_energy,
+        energy_fn=uff_inversion_energy,
         gradient_lens=gradient_lens,
         hessian_lens=hessian_lens,
         hessian_idx_view=hessian_idx_view,
@@ -260,4 +260,4 @@ def make_inversion_potential[
 
 
 if TYPE_CHECKING:
-    _: EnergyFunction[Any, InversionInput] = inversion_energy
+    _: EnergyFunction[Any, UFFInversionInput] = uff_inversion_energy

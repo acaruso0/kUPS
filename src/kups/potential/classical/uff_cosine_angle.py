@@ -67,7 +67,7 @@ class IsBondedParticles(HasPositionsAndLabels, IsRadiusGraphPoints, Protocol):
 
 
 @dataclass
-class CosineAngleParameters:
+class UFFCosineAngleParameters:
     """UFF-style cosine angle potential parameters.
 
     Attributes:
@@ -91,7 +91,7 @@ class CosineAngleParameters:
         electronegativity: Array,
         effective_charge: Array,
         linear_tol: Array = jnp.radians(5),
-    ) -> "CosineAngleParameters":
+    ) -> "UFFCosineAngleParameters":
         r"""Create angle parameters using UFF formulas.
 
         Computes angle parameters from per-species atomic properties:
@@ -107,7 +107,7 @@ class CosineAngleParameters:
             linear_tol: Tolerance for detecting linear angles [radians]
 
         Returns:
-            CosineAngleParameters with full interaction matrices
+            UFFCosineAngleParameters with full interaction matrices
         """
         nt = bond_angle.shape[0]
 
@@ -138,8 +138,8 @@ class CosineAngleParameters:
         )
 
 
-type CosineAngleInput = GraphPotentialInput[
-    CosineAngleParameters, IsBondedParticles, HasCell[AnyPeriodicity], Literal[3]
+type UFFCosineAngleInput = GraphPotentialInput[
+    UFFCosineAngleParameters, IsBondedParticles, HasCell[AnyPeriodicity], Literal[3]
 ]
 
 
@@ -161,8 +161,8 @@ def _compute_cosine_coefficients(theta0: Array) -> tuple[Array, Array, Array]:
     return c0, c1, c2
 
 
-def cosine_angle_energy(
-    inp: CosineAngleInput,
+def uff_cosine_angle_energy(
+    inp: UFFCosineAngleInput,
 ) -> WithPatch[Table[SystemId, Energy], IdPatch[Any]]:
     r"""Compute UFF-style cosine angle energy for all angles.
 
@@ -215,7 +215,7 @@ def cosine_angle_energy(
     return WithPatch(total_energies, IdPatch[Any]())
 
 
-def make_cosine_angle_potential[
+def make_uff_cosine_angle_potential[
     State,
     Ptch: Patch[Any],
     Gradients,
@@ -224,9 +224,9 @@ def make_cosine_angle_potential[
     particles_view: View[State, Table[ParticleId, IsBondedParticles]],
     edge_indices_view: View[State, Index[ParticleId]],
     systems_view: View[State, Table[SystemId, HasCell[AnyPeriodicity]]],
-    parameter_view: View[State, CosineAngleParameters],
+    parameter_view: View[State, UFFCosineAngleParameters],
     probe: Probe[State, Ptch, IsGraphProbe[IsBondedParticles, Literal[3]]] | None,
-    gradient_lens: Lens[CosineAngleInput, Gradients],
+    gradient_lens: Lens[UFFCosineAngleInput, Gradients],
     hessian_lens: Lens[Gradients, Hessians],
     hessian_idx_view: View[State, Hessians],
     patch_idx_view: View[State, PotentialOut[Gradients, Hessians]] | None = None,
@@ -238,7 +238,7 @@ def make_cosine_angle_potential[
         particles_view: Extracts particle data (positions, species) with system index
         edge_indices_view: Extracts angle connectivity (triplets)
         systems_view: Extracts indexed system data (cell)
-        parameter_view: Extracts [CosineAngleParameters][kups.potential.classical.cosine_angle.CosineAngleParameters]
+        parameter_view: Extracts [UFFCosineAngleParameters][kups.potential.classical.uff_cosine_angle.UFFCosineAngleParameters]
         probe: Graph probe for incremental particle and neighbor-list updates
         gradient_lens: Specifies gradients to compute
         hessian_lens: Specifies Hessians to compute
@@ -263,7 +263,7 @@ def make_cosine_angle_potential[
     )
     potential = PotentialFromEnergy(
         composer=composer,
-        energy_fn=cosine_angle_energy,
+        energy_fn=uff_cosine_angle_energy,
         gradient_lens=gradient_lens,
         hessian_lens=hessian_lens,
         hessian_idx_view=hessian_idx_view,
@@ -274,4 +274,4 @@ def make_cosine_angle_potential[
 
 
 if TYPE_CHECKING:
-    _: EnergyFunction[Any, CosineAngleInput] = cosine_angle_energy
+    _: EnergyFunction[Any, UFFCosineAngleInput] = uff_cosine_angle_energy

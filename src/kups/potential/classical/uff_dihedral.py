@@ -64,7 +64,7 @@ class IsBondedParticles(HasPositionsAndLabels, IsRadiusGraphPoints, Protocol):
 
 
 @dataclass
-class DihedralParameters:
+class UFFDihedralParameters:
     """UFF dihedral/torsion potential parameters.
 
     Attributes:
@@ -90,7 +90,7 @@ class DihedralParameters:
         group: Array,
         bond_order: Array | None = None,
         hybridization_tol: float = 5.0 * 3.141592653589793 / 180.0,
-    ) -> "DihedralParameters":
+    ) -> "UFFDihedralParameters":
         r"""Create dihedral parameters using UFF formulas.
 
         Computes torsion parameters based on central bond hybridization following
@@ -107,7 +107,7 @@ class DihedralParameters:
             hybridization_tol: Tolerance for hybridization detection [radians].
 
         Returns:
-            DihedralParameters with full 4D interaction matrices.
+            UFFDihedralParameters with full 4D interaction matrices.
         """
         nt = bond_angle.shape[0]
 
@@ -200,13 +200,13 @@ class DihedralParameters:
         return cls(labels=tuple(map(Label, labels)), V=V_arr, n=n_arr, phi0=phi0_arr)
 
 
-type DihedralInput = GraphPotentialInput[
-    DihedralParameters, IsBondedParticles, HasCell[AnyPeriodicity], Literal[4]
+type UFFDihedralInput = GraphPotentialInput[
+    UFFDihedralParameters, IsBondedParticles, HasCell[AnyPeriodicity], Literal[4]
 ]
 
 
-def dihedral_energy(
-    inp: DihedralInput,
+def uff_dihedral_energy(
+    inp: UFFDihedralInput,
 ) -> WithPatch[Table[SystemId, Energy], IdPatch[Any]]:
     r"""Compute UFF dihedral/torsion energy for all dihedrals.
 
@@ -267,7 +267,7 @@ def dihedral_energy(
     return WithPatch(total_energies, IdPatch[Any]())
 
 
-def make_dihedral_potential[
+def make_uff_dihedral_potential[
     State,
     Ptch: Patch[Any],
     Gradients,
@@ -276,9 +276,9 @@ def make_dihedral_potential[
     particles_view: View[State, Table[ParticleId, IsBondedParticles]],
     edge_indices_view: View[State, Index[ParticleId]],
     systems_view: View[State, Table[SystemId, HasCell[AnyPeriodicity]]],
-    parameter_view: View[State, DihedralParameters],
+    parameter_view: View[State, UFFDihedralParameters],
     probe: Probe[State, Ptch, IsGraphProbe[IsBondedParticles, Literal[4]]] | None,
-    gradient_lens: Lens[DihedralInput, Gradients],
+    gradient_lens: Lens[UFFDihedralInput, Gradients],
     hessian_lens: Lens[Gradients, Hessians],
     hessian_idx_view: View[State, Hessians],
     patch_idx_view: View[State, PotentialOut[Gradients, Hessians]] | None = None,
@@ -290,7 +290,7 @@ def make_dihedral_potential[
         particles_view: Extracts particle data (positions, species) with system index
         edge_indices_view: Extracts dihedral connectivity (quadruplets)
         systems_view: Extracts indexed system data (cell)
-        parameter_view: Extracts [DihedralParameters][kups.potential.classical.dihedral.DihedralParameters]
+        parameter_view: Extracts [UFFDihedralParameters][kups.potential.classical.uff_dihedral.UFFDihedralParameters]
         probe: Graph probe for incremental particle and neighbor-list updates
         gradient_lens: Specifies gradients to compute
         hessian_lens: Specifies Hessians to compute
@@ -315,7 +315,7 @@ def make_dihedral_potential[
     )
     potential = PotentialFromEnergy(
         composer=composer,
-        energy_fn=dihedral_energy,
+        energy_fn=uff_dihedral_energy,
         gradient_lens=gradient_lens,
         hessian_lens=hessian_lens,
         hessian_idx_view=hessian_idx_view,
@@ -326,4 +326,4 @@ def make_dihedral_potential[
 
 
 if TYPE_CHECKING:
-    _: EnergyFunction[Any, DihedralInput] = dihedral_energy
+    _: EnergyFunction[Any, UFFDihedralInput] = uff_dihedral_energy

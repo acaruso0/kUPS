@@ -5,7 +5,7 @@
 
 These adapters take a :class:`~kups.core.lens.Lens` into a concrete simulation
 state and wire its particles, systems, dihedral indices, and parameters into the
-state-agnostic factories in [kups.potential.classical.dihedral][].
+state-agnostic factories in [kups.potential.classical.uff_dihedral][].
 
 Parameters may live on the state (``state.dihedral_parameters``) or be passed
 directly via ``parameters=``; in the latter case they are bound with a constant
@@ -30,10 +30,10 @@ from kups.core.potential import (
     empty_patch_idx_view,
 )
 from kups.core.typing import HasCache, HasCell, IsState, MaybeCached, ParticleId
-from kups.potential.classical.dihedral import (
-    DihedralParameters,
+from kups.potential.classical.uff_dihedral import (
+    UFFDihedralParameters,
     IsBondedParticles,
-    make_dihedral_potential,
+    make_uff_dihedral_potential,
 )
 from kups.potential.common.geometry import (
     Geometry,
@@ -67,8 +67,8 @@ class IsCachedDihedralGraphState[Cache](IsDihedralGraphState, Protocol):
 
 
 @overload
-def make_dihedral_from_state[State](
-    state: Lens[State, IsDihedralState[MaybeCached[DihedralParameters, Any]]],
+def make_uff_dihedral_from_state[State](
+    state: Lens[State, IsDihedralState[MaybeCached[UFFDihedralParameters, Any]]],
     probe: None = None,
     *,
     parameters: None = None,
@@ -77,8 +77,8 @@ def make_dihedral_from_state[State](
 
 
 @overload
-def make_dihedral_from_state[State](
-    state: Lens[State, IsDihedralState[MaybeCached[DihedralParameters, Any]]],
+def make_uff_dihedral_from_state[State](
+    state: Lens[State, IsDihedralState[MaybeCached[UFFDihedralParameters, Any]]],
     probe: None = None,
     *,
     parameters: None = None,
@@ -87,11 +87,11 @@ def make_dihedral_from_state[State](
 
 
 @overload
-def make_dihedral_from_state[State, P: Patch[Any]](
+def make_uff_dihedral_from_state[State, P: Patch[Any]](
     state: Lens[
         State,
         IsDihedralState[
-            HasCache[DihedralParameters, PotentialOut[EmptyType, EmptyType]]
+            HasCache[UFFDihedralParameters, PotentialOut[EmptyType, EmptyType]]
         ],
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
@@ -102,11 +102,11 @@ def make_dihedral_from_state[State, P: Patch[Any]](
 
 
 @overload
-def make_dihedral_from_state[State, P: Patch[Any]](
+def make_uff_dihedral_from_state[State, P: Patch[Any]](
     state: Lens[
         State,
         IsDihedralState[
-            HasCache[DihedralParameters, PotentialOut[PositionsAndCell, EmptyType]]
+            HasCache[UFFDihedralParameters, PotentialOut[PositionsAndCell, EmptyType]]
         ],
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
@@ -117,52 +117,52 @@ def make_dihedral_from_state[State, P: Patch[Any]](
 
 
 @overload
-def make_dihedral_from_state[State](
+def make_uff_dihedral_from_state[State](
     state: Lens[State, IsDihedralGraphState],
     probe: None = None,
     *,
-    parameters: DihedralParameters,
+    parameters: UFFDihedralParameters,
     gradient: None = None,
 ) -> Potential[State, EmptyType, EmptyType, Patch[Any]]: ...
 
 
 @overload
-def make_dihedral_from_state[State](
+def make_uff_dihedral_from_state[State](
     state: Lens[State, IsDihedralGraphState],
     probe: None = None,
     *,
-    parameters: DihedralParameters,
+    parameters: UFFDihedralParameters,
     gradient: Lens[Geometry, PositionsAndCell],
 ) -> Potential[State, PositionsAndCell, EmptyType, Patch[Any]]: ...
 
 
 @overload
-def make_dihedral_from_state[State, P: Patch[Any]](
+def make_uff_dihedral_from_state[State, P: Patch[Any]](
     state: Lens[State, IsCachedDihedralGraphState[PotentialOut[EmptyType, EmptyType]]],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
     *,
-    parameters: DihedralParameters,
+    parameters: UFFDihedralParameters,
     gradient: None = None,
 ) -> Potential[State, EmptyType, EmptyType, P]: ...
 
 
 @overload
-def make_dihedral_from_state[State, P: Patch[Any]](
+def make_uff_dihedral_from_state[State, P: Patch[Any]](
     state: Lens[
         State, IsCachedDihedralGraphState[PotentialOut[PositionsAndCell, EmptyType]]
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
     *,
-    parameters: DihedralParameters,
+    parameters: UFFDihedralParameters,
     gradient: Lens[Geometry, PositionsAndCell],
 ) -> Potential[State, PositionsAndCell, EmptyType, P]: ...
 
 
-def make_dihedral_from_state(
+def make_uff_dihedral_from_state(
     state: Any,
     probe: Any = None,
     *,
-    parameters: DihedralParameters | None = None,
+    parameters: UFFDihedralParameters | None = None,
     gradient: Lens[Geometry, PositionsAndCell] | None = None,
 ) -> Any:
     """Create a dihedral potential from a typed state, optionally with incremental updates.
@@ -207,7 +207,7 @@ def make_dihedral_from_state(
         else:
             cache_view = state.focus(lambda x: x.dihedral_cache)
         patch_idx_view = patch_idx_view or empty_patch_idx_view
-    return make_dihedral_potential(
+    return make_uff_dihedral_potential(
         state.focus(lambda x: x.particles),
         state.focus(lambda x: x.dihedral_edge_indices),
         state.focus(lambda x: x.systems),

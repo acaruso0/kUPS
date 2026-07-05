@@ -6,7 +6,7 @@
 These adapters take a :class:`~kups.core.lens.Lens` into a concrete simulation
 state and wire its particles, systems, angle indices, and parameters into the
 state-agnostic factories in
-[kups.potential.classical.cosine_angle][].
+[kups.potential.classical.uff_cosine_angle][].
 
 Parameters may live on the state (``state.cosine_angle_parameters``) or be passed
 directly via ``parameters=``; in the latter case they are bound with a constant
@@ -31,10 +31,10 @@ from kups.core.potential import (
     empty_patch_idx_view,
 )
 from kups.core.typing import HasCache, HasCell, IsState, MaybeCached, ParticleId
-from kups.potential.classical.cosine_angle import (
-    CosineAngleParameters,
+from kups.potential.classical.uff_cosine_angle import (
+    UFFCosineAngleParameters,
     IsBondedParticles,
-    make_cosine_angle_potential,
+    make_uff_cosine_angle_potential,
 )
 from kups.potential.common.geometry import (
     Geometry,
@@ -68,10 +68,10 @@ class IsCachedCosineAngleGraphState[Cache](IsCosineAngleGraphState, Protocol):
 
 
 @overload
-def make_cosine_angle_from_state[State](
+def make_uff_cosine_angle_from_state[State](
     state: Lens[
         State,
-        IsCosineAngleState[MaybeCached[CosineAngleParameters, Any]],
+        IsCosineAngleState[MaybeCached[UFFCosineAngleParameters, Any]],
     ],
     probe: None = None,
     *,
@@ -81,10 +81,10 @@ def make_cosine_angle_from_state[State](
 
 
 @overload
-def make_cosine_angle_from_state[State](
+def make_uff_cosine_angle_from_state[State](
     state: Lens[
         State,
-        IsCosineAngleState[MaybeCached[CosineAngleParameters, Any]],
+        IsCosineAngleState[MaybeCached[UFFCosineAngleParameters, Any]],
     ],
     probe: None = None,
     *,
@@ -94,11 +94,11 @@ def make_cosine_angle_from_state[State](
 
 
 @overload
-def make_cosine_angle_from_state[State, P: Patch[Any]](
+def make_uff_cosine_angle_from_state[State, P: Patch[Any]](
     state: Lens[
         State,
         IsCosineAngleState[
-            HasCache[CosineAngleParameters, PotentialOut[EmptyType, EmptyType]]
+            HasCache[UFFCosineAngleParameters, PotentialOut[EmptyType, EmptyType]]
         ],
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[3]]],
@@ -109,11 +109,11 @@ def make_cosine_angle_from_state[State, P: Patch[Any]](
 
 
 @overload
-def make_cosine_angle_from_state[State, P: Patch[Any]](
+def make_uff_cosine_angle_from_state[State, P: Patch[Any]](
     state: Lens[
         State,
         IsCosineAngleState[
-            HasCache[CosineAngleParameters, PotentialOut[PositionsAndCell, EmptyType]]
+            HasCache[UFFCosineAngleParameters, PotentialOut[PositionsAndCell, EmptyType]]
         ],
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[3]]],
@@ -124,54 +124,54 @@ def make_cosine_angle_from_state[State, P: Patch[Any]](
 
 
 @overload
-def make_cosine_angle_from_state[State](
+def make_uff_cosine_angle_from_state[State](
     state: Lens[State, IsCosineAngleGraphState],
     probe: None = None,
     *,
-    parameters: CosineAngleParameters,
+    parameters: UFFCosineAngleParameters,
     gradient: None = None,
 ) -> Potential[State, EmptyType, EmptyType, Patch[Any]]: ...
 
 
 @overload
-def make_cosine_angle_from_state[State](
+def make_uff_cosine_angle_from_state[State](
     state: Lens[State, IsCosineAngleGraphState],
     probe: None = None,
     *,
-    parameters: CosineAngleParameters,
+    parameters: UFFCosineAngleParameters,
     gradient: Lens[Geometry, PositionsAndCell],
 ) -> Potential[State, PositionsAndCell, EmptyType, Patch[Any]]: ...
 
 
 @overload
-def make_cosine_angle_from_state[State, P: Patch[Any]](
+def make_uff_cosine_angle_from_state[State, P: Patch[Any]](
     state: Lens[
         State, IsCachedCosineAngleGraphState[PotentialOut[EmptyType, EmptyType]]
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[3]]],
     *,
-    parameters: CosineAngleParameters,
+    parameters: UFFCosineAngleParameters,
     gradient: None = None,
 ) -> Potential[State, EmptyType, EmptyType, P]: ...
 
 
 @overload
-def make_cosine_angle_from_state[State, P: Patch[Any]](
+def make_uff_cosine_angle_from_state[State, P: Patch[Any]](
     state: Lens[
         State, IsCachedCosineAngleGraphState[PotentialOut[PositionsAndCell, EmptyType]]
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[3]]],
     *,
-    parameters: CosineAngleParameters,
+    parameters: UFFCosineAngleParameters,
     gradient: Lens[Geometry, PositionsAndCell],
 ) -> Potential[State, PositionsAndCell, EmptyType, P]: ...
 
 
-def make_cosine_angle_from_state(
+def make_uff_cosine_angle_from_state(
     state: Any,
     probe: Any = None,
     *,
-    parameters: CosineAngleParameters | None = None,
+    parameters: UFFCosineAngleParameters | None = None,
     gradient: Lens[Geometry, PositionsAndCell] | None = None,
 ) -> Any:
     """Create a cosine angle potential from a typed state, optionally with incremental updates.
@@ -216,7 +216,7 @@ def make_cosine_angle_from_state(
         else:
             cache_view = state.focus(lambda x: x.cosine_angle_cache)
         patch_idx_view = patch_idx_view or empty_patch_idx_view
-    return make_cosine_angle_potential(
+    return make_uff_cosine_angle_potential(
         state.focus(lambda x: x.particles),
         state.focus(lambda x: x.cosine_angle_edge_indices),
         state.focus(lambda x: x.systems),

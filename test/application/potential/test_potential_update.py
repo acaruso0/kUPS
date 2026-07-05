@@ -16,15 +16,15 @@ import jax.numpy as jnp
 import pytest
 from jax import Array
 
-from kups.application.potential.classical.cosine_angle import (
-    make_cosine_angle_from_state,
+from kups.application.potential.classical.uff_cosine_angle import (
+    make_uff_cosine_angle_from_state,
 )
-from kups.application.potential.classical.dihedral import make_dihedral_from_state
+from kups.application.potential.classical.uff_dihedral import make_uff_dihedral_from_state
 from kups.application.potential.classical.harmonic import (
     make_harmonic_angle_from_state,
     make_harmonic_bond_from_state,
 )
-from kups.application.potential.classical.inversion import make_inversion_from_state
+from kups.application.potential.classical.uff_inversion import make_uff_inversion_from_state
 from kups.application.potential.classical.lennard_jones import (
     make_lennard_jones_from_state,
 )
@@ -48,13 +48,13 @@ from kups.core.typing import (
     SystemId,
 )
 from kups.core.utils.jax import dataclass
-from kups.potential.classical.cosine_angle import CosineAngleParameters
-from kups.potential.classical.dihedral import DihedralParameters
+from kups.potential.classical.uff_cosine_angle import UFFCosineAngleParameters
+from kups.potential.classical.uff_dihedral import UFFDihedralParameters
 from kups.potential.classical.harmonic import (
     HarmonicAngleParameters,
     HarmonicBondParameters,
 )
-from kups.potential.classical.inversion import InversionParameters
+from kups.potential.classical.uff_inversion import UFFInversionParameters
 from kups.potential.classical.lennard_jones import LennardJonesParameters
 from kups.potential.classical.morse import MorseBondParameters
 
@@ -105,11 +105,11 @@ class State:
     harmonic_angle_parameters: WithCache[HarmonicAngleParameters, EmptyCache]
     morse_bond_parameters: WithCache[MorseBondParameters, EmptyCache]
     cosine_angle_edge_indices: Index[ParticleId]
-    cosine_angle_parameters: WithCache[CosineAngleParameters, EmptyCache]
+    cosine_angle_parameters: WithCache[UFFCosineAngleParameters, EmptyCache]
     dihedral_edge_indices: Index[ParticleId]
-    dihedral_parameters: WithCache[DihedralParameters, EmptyCache]
+    dihedral_parameters: WithCache[UFFDihedralParameters, EmptyCache]
     inversion_edge_indices: Index[ParticleId]
-    inversion_parameters: WithCache[InversionParameters, EmptyCache]
+    inversion_parameters: WithCache[UFFInversionParameters, EmptyCache]
 
     def neighborlist(
         self, cutoffs: Table[SystemId, Array]
@@ -198,9 +198,9 @@ class _CommonParts(NamedTuple):
     hb: HarmonicBondParameters
     ha: HarmonicAngleParameters
     mb: MorseBondParameters
-    ca: CosineAngleParameters
-    dh: DihedralParameters
-    inv: InversionParameters
+    ca: UFFCosineAngleParameters
+    dh: UFFDihedralParameters
+    inv: UFFInversionParameters
 
 
 def _build_common(positions: Array | None = None) -> _CommonParts:
@@ -239,18 +239,18 @@ def _build_common(positions: Array | None = None) -> _CommonParts:
             D=jnp.ones((ns, ns)) * 2.0,
             alpha=jnp.ones((ns, ns)),
         ),
-        ca=CosineAngleParameters(
+        ca=UFFCosineAngleParameters(
             labels=_LABELS,
             theta0=jnp.ones((ns, ns, ns)) * jnp.radians(109.5),
             k=jnp.ones((ns, ns, ns)) * 50.0,
         ),
-        dh=DihedralParameters(
+        dh=UFFDihedralParameters(
             labels=_LABELS,
             V=jnp.ones((ns, ns, ns, ns)) * 2.0,
             n=jnp.ones((ns, ns, ns, ns), dtype=int) * 3,
             phi0=jnp.ones((ns, ns, ns, ns)) * jnp.pi,
         ),
-        inv=InversionParameters(
+        inv=UFFInversionParameters(
             labels=_LABELS,
             omega0=jnp.zeros((ns, ns, ns, ns)),
             k=jnp.ones((ns, ns, ns, ns)) * 6.0,
@@ -341,11 +341,11 @@ _POTENTIALS: list[PotentialConfig] = [
     ),
     PotentialConfig("morse_bond", make_morse_bond_from_state, 2, "bond_edge_indices"),
     PotentialConfig(
-        "cosine_angle", make_cosine_angle_from_state, 3, "cosine_angle_edge_indices"
+        "cosine_angle", make_uff_cosine_angle_from_state, 3, "cosine_angle_edge_indices"
     ),
-    PotentialConfig("dihedral", make_dihedral_from_state, 4, "dihedral_edge_indices"),
+    PotentialConfig("dihedral", make_uff_dihedral_from_state, 4, "dihedral_edge_indices"),
     PotentialConfig(
-        "inversion", make_inversion_from_state, 4, "inversion_edge_indices"
+        "inversion", make_uff_inversion_from_state, 4, "inversion_edge_indices"
     ),
 ]
 

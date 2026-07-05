@@ -6,7 +6,7 @@
 These adapters take a :class:`~kups.core.lens.Lens` into a concrete simulation
 state and wire its particles, systems, inversion connectivity, and parameters
 into the state-agnostic factories in
-[kups.potential.classical.inversion][].
+[kups.potential.classical.uff_inversion][].
 
 Parameters may live on the state (``state.inversion_parameters``) or be passed
 directly via ``parameters=``; in the latter case they are bound with a constant
@@ -31,10 +31,10 @@ from kups.core.potential import (
     empty_patch_idx_view,
 )
 from kups.core.typing import HasCache, HasCell, IsState, MaybeCached, ParticleId
-from kups.potential.classical.inversion import (
-    InversionParameters,
+from kups.potential.classical.uff_inversion import (
+    UFFInversionParameters,
     IsBondedParticles,
-    make_inversion_potential,
+    make_uff_inversion_potential,
 )
 from kups.potential.common.geometry import (
     Geometry,
@@ -68,10 +68,10 @@ class IsCachedInversionGraphState[Cache](IsInversionGraphState, Protocol):
 
 
 @overload
-def make_inversion_from_state[State](
+def make_uff_inversion_from_state[State](
     state: Lens[
         State,
-        IsInversionState[MaybeCached[InversionParameters, Any]],
+        IsInversionState[MaybeCached[UFFInversionParameters, Any]],
     ],
     probe: None = None,
     *,
@@ -81,10 +81,10 @@ def make_inversion_from_state[State](
 
 
 @overload
-def make_inversion_from_state[State](
+def make_uff_inversion_from_state[State](
     state: Lens[
         State,
-        IsInversionState[MaybeCached[InversionParameters, Any]],
+        IsInversionState[MaybeCached[UFFInversionParameters, Any]],
     ],
     probe: None = None,
     *,
@@ -94,11 +94,11 @@ def make_inversion_from_state[State](
 
 
 @overload
-def make_inversion_from_state[State, P: Patch[Any]](
+def make_uff_inversion_from_state[State, P: Patch[Any]](
     state: Lens[
         State,
         IsInversionState[
-            HasCache[InversionParameters, PotentialOut[EmptyType, EmptyType]]
+            HasCache[UFFInversionParameters, PotentialOut[EmptyType, EmptyType]]
         ],
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
@@ -109,11 +109,11 @@ def make_inversion_from_state[State, P: Patch[Any]](
 
 
 @overload
-def make_inversion_from_state[State, P: Patch[Any]](
+def make_uff_inversion_from_state[State, P: Patch[Any]](
     state: Lens[
         State,
         IsInversionState[
-            HasCache[InversionParameters, PotentialOut[PositionsAndCell, EmptyType]]
+            HasCache[UFFInversionParameters, PotentialOut[PositionsAndCell, EmptyType]]
         ],
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
@@ -124,52 +124,52 @@ def make_inversion_from_state[State, P: Patch[Any]](
 
 
 @overload
-def make_inversion_from_state[State](
+def make_uff_inversion_from_state[State](
     state: Lens[State, IsInversionGraphState],
     probe: None = None,
     *,
-    parameters: InversionParameters,
+    parameters: UFFInversionParameters,
     gradient: None = None,
 ) -> Potential[State, EmptyType, EmptyType, Patch[Any]]: ...
 
 
 @overload
-def make_inversion_from_state[State](
+def make_uff_inversion_from_state[State](
     state: Lens[State, IsInversionGraphState],
     probe: None = None,
     *,
-    parameters: InversionParameters,
+    parameters: UFFInversionParameters,
     gradient: Lens[Geometry, PositionsAndCell],
 ) -> Potential[State, PositionsAndCell, EmptyType, Patch[Any]]: ...
 
 
 @overload
-def make_inversion_from_state[State, P: Patch[Any]](
+def make_uff_inversion_from_state[State, P: Patch[Any]](
     state: Lens[State, IsCachedInversionGraphState[PotentialOut[EmptyType, EmptyType]]],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
     *,
-    parameters: InversionParameters,
+    parameters: UFFInversionParameters,
     gradient: None = None,
 ) -> Potential[State, EmptyType, EmptyType, P]: ...
 
 
 @overload
-def make_inversion_from_state[State, P: Patch[Any]](
+def make_uff_inversion_from_state[State, P: Patch[Any]](
     state: Lens[
         State, IsCachedInversionGraphState[PotentialOut[PositionsAndCell, EmptyType]]
     ],
     probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
     *,
-    parameters: InversionParameters,
+    parameters: UFFInversionParameters,
     gradient: Lens[Geometry, PositionsAndCell],
 ) -> Potential[State, PositionsAndCell, EmptyType, P]: ...
 
 
-def make_inversion_from_state(
+def make_uff_inversion_from_state(
     state: Any,
     probe: Any = None,
     *,
-    parameters: InversionParameters | None = None,
+    parameters: UFFInversionParameters | None = None,
     gradient: Lens[Geometry, PositionsAndCell] | None = None,
 ) -> Any:
     """Create an inversion potential, optionally with incremental updates.
@@ -215,7 +215,7 @@ def make_inversion_from_state(
         else:
             cache_view = state.focus(lambda x: x.inversion_cache)
         patch_idx_view = patch_idx_view or empty_patch_idx_view
-    return make_inversion_potential(
+    return make_uff_inversion_potential(
         state.focus(lambda x: x.particles),
         state.focus(lambda x: x.inversion_edge_indices),
         state.focus(lambda x: x.systems),

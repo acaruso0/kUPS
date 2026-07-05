@@ -9,10 +9,10 @@ import pytest
 
 from kups.core.data.index import Index
 from kups.core.neighborlist import Edges
-from kups.potential.classical.cosine_angle import (
-    CosineAngleParameters,
+from kups.potential.classical.uff_cosine_angle import (
+    UFFCosineAngleParameters,
     _compute_cosine_coefficients,
-    cosine_angle_energy,
+    uff_cosine_angle_energy,
 )
 from kups.potential.common.graph import GraphPotentialInput, HyperGraph
 
@@ -20,7 +20,7 @@ from .conftest import make_particles, make_systems
 
 _LABELS = ("A", "B")
 
-_jit_energy = jax.jit(cosine_angle_energy)
+_jit_energy = jax.jit(uff_cosine_angle_energy)
 
 
 def _positions_for_angle(theta) -> jax.Array:
@@ -31,7 +31,7 @@ def _positions_for_angle(theta) -> jax.Array:
 
 
 class TestCosineAngleEnergy:
-    """Test the cosine_angle_energy function."""
+    """Test the uff_cosine_angle_energy function."""
 
     @classmethod
     def setup_class(cls):
@@ -63,7 +63,7 @@ class TestCosineAngleEnergy:
         # Equilibrium: energy=0 at theta0
         for theta0_deg in [90, 120, 180]:
             theta0 = jnp.radians(theta0_deg)
-            params = CosineAngleParameters(
+            params = UFFCosineAngleParameters(
                 labels=_LABELS, theta0=jnp.ones((2, 2, 2)) * theta0, k=self.k
             )
             assert jnp.isclose(
@@ -73,13 +73,13 @@ class TestCosineAngleEnergy:
         # Nonequilibrium: energy > 0
         for theta0_deg, test_deg in [(90, 60), (120, 90), (180, 90)]:
             theta0 = jnp.radians(theta0_deg)
-            params = CosineAngleParameters(
+            params = UFFCosineAngleParameters(
                 labels=_LABELS, theta0=jnp.ones((2, 2, 2)) * theta0, k=self.k
             )
             assert self._energy(_positions_for_angle(jnp.radians(test_deg)), params) > 0
 
         # Zero force constant
-        params = CosineAngleParameters(
+        params = UFFCosineAngleParameters(
             labels=_LABELS,
             theta0=jnp.ones((2, 2, 2)) * jnp.pi / 2,
             k=jnp.zeros((2, 2, 2)),
@@ -93,7 +93,7 @@ class TestCosineAngleEnergy:
         # Equilibrium: gradient=0
         for theta0_deg in [90, 120, 180]:
             theta0 = jnp.radians(theta0_deg)
-            params = CosineAngleParameters(
+            params = UFFCosineAngleParameters(
                 labels=_LABELS, theta0=jnp.ones((2, 2, 2)) * theta0, k=self.k
             )
             assert jnp.allclose(
@@ -103,7 +103,7 @@ class TestCosineAngleEnergy:
         # Nonequilibrium: gradient nonzero
         for theta0_deg, test_deg in [(90, 60), (120, 90), (180, 90)]:
             theta0 = jnp.radians(theta0_deg)
-            params = CosineAngleParameters(
+            params = UFFCosineAngleParameters(
                 labels=_LABELS, theta0=jnp.ones((2, 2, 2)) * theta0, k=self.k
             )
             grad = self._gradient(_positions_for_angle(jnp.radians(test_deg)), params)
@@ -119,11 +119,11 @@ class TestCosineAngleEnergy:
             shifts=jnp.array([[[0.0, 0.0, 0.0]]]),
         )
         graph = HyperGraph(particles, systems, edges)
-        params = CosineAngleParameters(
+        params = UFFCosineAngleParameters(
             labels=_LABELS, theta0=jnp.ones((2, 2, 2)) * jnp.pi / 2, k=self.k
         )
         with pytest.raises(AssertionError, match="triplet interactions"):
-            cosine_angle_energy(GraphPotentialInput(graph=graph, parameters=params))
+            uff_cosine_angle_energy(GraphPotentialInput(graph=graph, parameters=params))
 
     def test_multiple_angles(self):
         positions = jnp.array(
@@ -143,10 +143,10 @@ class TestCosineAngleEnergy:
             ),
         )
         graph = HyperGraph(particles, systems, edges)
-        params = CosineAngleParameters(
+        params = UFFCosineAngleParameters(
             labels=_LABELS, theta0=jnp.ones((2, 2, 2)) * jnp.pi / 2, k=self.k
         )
-        result = cosine_angle_energy(
+        result = uff_cosine_angle_energy(
             GraphPotentialInput(graph=graph, parameters=params)
         )
         assert result.data.data.shape == (1,)

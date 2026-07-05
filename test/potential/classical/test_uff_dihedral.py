@@ -9,7 +9,7 @@ import pytest
 
 from kups.core.data.index import Index
 from kups.core.neighborlist import Edges
-from kups.potential.classical.dihedral import DihedralParameters, dihedral_energy
+from kups.potential.classical.uff_dihedral import UFFDihedralParameters, uff_dihedral_energy
 from kups.potential.common.graph import GraphPotentialInput, HyperGraph
 
 from .conftest import make_particles, make_systems
@@ -18,7 +18,7 @@ _LABELS = ("A", "B")
 
 
 class TestDihedralParametersFromUFF:
-    """Test DihedralParameters.from_uff for all UFF cases."""
+    """Test UFFDihedralParameters.from_uff for all UFF cases."""
 
     @classmethod
     def setup_class(cls):
@@ -36,7 +36,7 @@ class TestDihedralParametersFromUFF:
         cls.group = jnp.array([14, 14, 6, 0])
 
     def _from_uff(self, bond_order=None):
-        return DihedralParameters.from_uff(
+        return UFFDihedralParameters.from_uff(
             self.labels,
             self.bond_angle,
             self.torsion_sp3,
@@ -124,7 +124,7 @@ _SINGLE_SYSTEM_IDS = [0, 0, 0, 0]
 _SINGLE_CELLS_LV = jnp.eye(3)[None] * 20.0
 
 
-def _single_dihedral_energy(positions: jax.Array, params: DihedralParameters):
+def _single_dihedral_energy(positions: jax.Array, params: UFFDihedralParameters):
     """Energy of one A-A-A-A dihedral; params traced for grad/jit reuse."""
     particles = make_particles(positions, _SINGLE_SPECIES, _SINGLE_SYSTEM_IDS)
     systems = make_systems(_SINGLE_CELLS_LV)
@@ -133,7 +133,7 @@ def _single_dihedral_energy(positions: jax.Array, params: DihedralParameters):
         shifts=jnp.zeros((1, 3, 3)),
     )
     graph = HyperGraph(particles, systems, edges)
-    return dihedral_energy(
+    return uff_dihedral_energy(
         GraphPotentialInput(graph=graph, parameters=params)
     ).data.data[0]
 
@@ -145,7 +145,7 @@ _jit_single_gradient = jax.jit(jax.grad(_single_dihedral_energy))
 
 
 class TestDihedralEnergy:
-    """Test the dihedral_energy function."""
+    """Test the uff_dihedral_energy function."""
 
     @classmethod
     def setup_class(cls):
@@ -156,7 +156,7 @@ class TestDihedralEnergy:
         cls.V = jnp.ones(shape) * 2.0
         cls.n = jnp.ones(shape) * 3.0
         cls.phi0 = jnp.ones(shape) * jnp.pi
-        cls.params = DihedralParameters(labels=_LABELS, V=cls.V, n=cls.n, phi0=cls.phi0)
+        cls.params = UFFDihedralParameters(labels=_LABELS, V=cls.V, n=cls.n, phi0=cls.phi0)
 
     def _make_graph(self, positions):
         particles = make_particles(positions, self.species, self.system_ids)
@@ -179,7 +179,7 @@ class TestDihedralEnergy:
         for phi0_deg, n in [(180, 3), (180, 2), (0, 6), (60, 3)]:
             phi0 = jnp.radians(phi0_deg)
             shape = (2, 2, 2, 2)
-            params = DihedralParameters(
+            params = UFFDihedralParameters(
                 labels=_LABELS,
                 V=self.V,
                 n=jnp.ones(shape) * n,
@@ -193,7 +193,7 @@ class TestDihedralEnergy:
         for phi0_deg, test_deg, n in [(180, 45, 3), (180, 90, 3), (0, 45, 6)]:
             phi0 = jnp.radians(phi0_deg)
             shape = (2, 2, 2, 2)
-            params = DihedralParameters(
+            params = UFFDihedralParameters(
                 labels=_LABELS,
                 V=self.V,
                 n=jnp.ones(shape) * n,
@@ -217,7 +217,7 @@ class TestDihedralEnergy:
         )
 
         # Zero barrier
-        params = DihedralParameters(
+        params = UFFDihedralParameters(
             labels=_LABELS, V=jnp.zeros_like(self.V), n=self.n, phi0=self.phi0
         )
         assert jnp.isclose(
@@ -229,7 +229,7 @@ class TestDihedralEnergy:
         for phi0_deg, n in [(180, 3), (180, 2), (0, 6), (60, 3)]:
             phi0 = jnp.radians(phi0_deg)
             shape = (2, 2, 2, 2)
-            params = DihedralParameters(
+            params = UFFDihedralParameters(
                 labels=_LABELS,
                 V=self.V,
                 n=jnp.ones(shape) * n,
@@ -242,7 +242,7 @@ class TestDihedralEnergy:
         for phi0_deg, test_deg, n in [(180, 45, 3), (180, 90, 3), (0, 45, 6)]:
             phi0 = jnp.radians(phi0_deg)
             shape = (2, 2, 2, 2)
-            params = DihedralParameters(
+            params = UFFDihedralParameters(
                 labels=_LABELS,
                 V=self.V,
                 n=jnp.ones(shape) * n,
@@ -265,13 +265,13 @@ class TestDihedralEnergy:
         )
         graph = HyperGraph(particles, systems, edges)
         with pytest.raises(AssertionError, match="quadruplet interactions"):
-            dihedral_energy(GraphPotentialInput(graph=graph, parameters=self.params))
+            uff_dihedral_energy(GraphPotentialInput(graph=graph, parameters=self.params))
 
     def test_different_species(self):
         species = ["A", "B", "A", "B"]
         system_ids = [0, 0, 0, 0]
         V = jnp.zeros((2, 2, 2, 2)).at[0, 1, 0, 1].set(4.0)
-        params = DihedralParameters(labels=_LABELS, V=V, n=self.n, phi0=self.phi0)
+        params = UFFDihedralParameters(labels=_LABELS, V=V, n=self.n, phi0=self.phi0)
         positions = _positions_for_dihedral(jnp.pi)
         particles = make_particles(positions, species, system_ids)
         systems = make_systems(self.cells_lv)
@@ -280,7 +280,7 @@ class TestDihedralEnergy:
             shifts=jnp.zeros((1, 3, 3)),
         )
         graph = HyperGraph(particles, systems, edges)
-        result = dihedral_energy(GraphPotentialInput(graph=graph, parameters=params))
+        result = uff_dihedral_energy(GraphPotentialInput(graph=graph, parameters=params))
         assert jnp.isclose(result.data.data[0], 0.0, atol=1e-5)
 
     def test_multiple_dihedrals(self):
@@ -296,7 +296,7 @@ class TestDihedralEnergy:
             shifts=jnp.zeros((2, 3, 3)),
         )
         graph = HyperGraph(particles, systems, edges)
-        result = dihedral_energy(
+        result = uff_dihedral_energy(
             GraphPotentialInput(graph=graph, parameters=self.params)
         )
         assert result.data.data.shape == (1,)
@@ -315,7 +315,7 @@ class TestDihedralEnergy:
             shifts=jnp.zeros((2, 3, 3)),
         )
         graph = HyperGraph(particles, systems, edges)
-        result = dihedral_energy(
+        result = uff_dihedral_energy(
             GraphPotentialInput(graph=graph, parameters=self.params)
         )
         assert result.data.data.shape == (2,)
