@@ -54,6 +54,11 @@ from .lennard_jones import (
     make_pair_tail_corrected_lennard_jones_potential,
 )
 from .morse import MorseBondParameters, make_morse_bond_potential
+from .polynomial import (
+    PolynomialAngleParameters,
+    make_polynomial_angle_potential,
+    polynomial_angle_energy,
+)
 from .repulsion import (
     CutoffExpRepulsionParameters,
     CutoffRepulsionParameters,
@@ -78,6 +83,7 @@ __all__ = [
     "make_harmonic_improper_potential",
     "make_uff_inversion_potential",
     "make_morse_bond_potential",
+    "make_polynomial_angle_potential",
     "make_repulsion_potential",
     "make_cutoff_repulsion_potential",
     "make_exp_repulsion_potential",
@@ -96,6 +102,8 @@ __all__ = [
     "UFFInversionParameters",
     "uff_inversion_energy",
     "MorseBondParameters",
+    "PolynomialAngleParameters",
+    "polynomial_angle_energy",
     "RepulsionParameters",
     "repulsion_energy",
     "CutoffRepulsionParameters",
