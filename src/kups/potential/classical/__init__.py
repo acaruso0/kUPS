@@ -53,6 +53,11 @@ from .lennard_jones import (
     make_lennard_jones_potential,
     make_pair_tail_corrected_lennard_jones_potential,
 )
+from .fourier_series import (
+    FourierDihedralParameters,
+    fourier_dihedral_energy,
+    make_fourier_dihedral_potential,
+)
 from .morse import MorseBondParameters, make_morse_bond_potential
 from .polynomial import (
     PolynomialAngleParameters,
@@ -82,6 +87,7 @@ __all__ = [
     "make_harmonic_bond_potential",
     "make_harmonic_improper_potential",
     "make_uff_inversion_potential",
+    "make_fourier_dihedral_potential",
     "make_morse_bond_potential",
     "make_polynomial_angle_potential",
     "make_repulsion_potential",
@@ -101,6 +107,8 @@ __all__ = [
     "harmonic_improper_energy",
     "UFFInversionParameters",
     "uff_inversion_energy",
+    "FourierDihedralParameters",
+    "fourier_dihedral_energy",
     "MorseBondParameters",
     "PolynomialAngleParameters",
     "polynomial_angle_energy",
