@@ -78,6 +78,11 @@ from .repulsion import (
     make_repulsion_potential,
     repulsion_energy,
 )
+from .restricted_bending import (
+    RestrictedQuarticParameters,
+    make_restricted_quartic_potential,
+    restricted_quartic_energy,
+)
 
 __all__ = [
     "make_uff_cosine_angle_potential",
@@ -94,6 +99,7 @@ __all__ = [
     "make_cutoff_repulsion_potential",
     "make_exp_repulsion_potential",
     "make_cutoff_exp_repulsion_potential",
+    "make_restricted_quartic_potential",
     "make_lennard_jones_potential",
     "make_global_lennard_jones_tail_correction_potential",
     "make_pair_tail_corrected_lennard_jones_potential",
@@ -120,6 +126,8 @@ __all__ = [
     "exp_repulsion_energy",
     "CutoffExpRepulsionParameters",
     "cutoff_exp_repulsion_energy",
+    "RestrictedQuarticParameters",
+    "restricted_quartic_energy",
     "LennardJonesParameters",
     "GlobalTailCorrectedLennardJonesParameters",
     "PairTailCorrectedLennardJonesParameters",
