@@ -35,9 +35,11 @@ from kups.core.typing import HasCache, HasCell, IsState, MaybeCached, ParticleId
 from kups.potential.classical.harmonic import (
     HarmonicAngleParameters,
     HarmonicBondParameters,
+    HarmonicImproperParameters,
     IsBondedParticles,
     make_harmonic_angle_potential,
     make_harmonic_bond_potential,
+    make_harmonic_improper_potential,
 )
 from kups.potential.common.geometry import (
     Geometry,
@@ -421,6 +423,196 @@ def make_harmonic_angle_from_state(
     return make_harmonic_angle_potential(
         state.focus(lambda x: x.particles),
         state.focus(lambda x: x.angle_edge_indices),
+        state.focus(lambda x: x.systems),
+        param_view,
+        probe,
+        gradient_lens,
+        EMPTY_LENS,
+        EMPTY_LENS,
+        patch_idx_view=patch_idx_view,
+        out_cache_lens=cache_view,
+    )
+
+
+class IsHarmonicImproperGraphState(HasBondedParticlesAndSystems, Protocol):
+    """Particles, systems, and improper indices for a harmonic improper graph (no parameters)."""
+
+    @property
+    def improper_edge_indices(self) -> Index[ParticleId]: ...
+
+
+class IsHarmonicImproperState[Params](IsHarmonicImproperGraphState, Protocol):
+    """:class:`IsHarmonicImproperGraphState` that also carries improper parameters on the state."""
+
+    @property
+    def harmonic_improper_parameters(self) -> Params: ...
+
+
+class IsCachedHarmonicImproperState[Cache](IsHarmonicImproperGraphState, Protocol):
+    """:class:`IsHarmonicImproperGraphState` carrying an incremental-update cache (params passed in)."""
+
+    @property
+    def harmonic_improper_cache(self) -> Cache: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State](
+    state: Lens[
+        State,
+        IsHarmonicImproperState[MaybeCached[HarmonicImproperParameters, Any]],
+    ],
+    probe: None = None,
+    *,
+    parameters: None = None,
+    gradient: None = None,
+) -> Potential[State, EmptyType, EmptyType, Patch[Any]]: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State](
+    state: Lens[
+        State,
+        IsHarmonicImproperState[MaybeCached[HarmonicImproperParameters, Any]],
+    ],
+    probe: None = None,
+    *,
+    parameters: None = None,
+    gradient: Lens[Geometry, PositionsAndCell],
+) -> Potential[State, PositionsAndCell, EmptyType, Patch[Any]]: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State, P: Patch[Any]](
+    state: Lens[
+        State,
+        IsHarmonicImproperState[
+            HasCache[HarmonicImproperParameters, PotentialOut[EmptyType, EmptyType]]
+        ],
+    ],
+    probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
+    *,
+    parameters: None = None,
+    gradient: None = None,
+) -> Potential[State, EmptyType, EmptyType, P]: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State, P: Patch[Any]](
+    state: Lens[
+        State,
+        IsHarmonicImproperState[
+            HasCache[
+                HarmonicImproperParameters, PotentialOut[PositionsAndCell, EmptyType]
+            ]
+        ],
+    ],
+    probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
+    *,
+    parameters: None = None,
+    gradient: Lens[Geometry, PositionsAndCell],
+) -> Potential[State, PositionsAndCell, EmptyType, P]: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State](
+    state: Lens[State, IsHarmonicImproperGraphState],
+    probe: None = None,
+    *,
+    parameters: HarmonicImproperParameters,
+    gradient: None = None,
+) -> Potential[State, EmptyType, EmptyType, Patch[Any]]: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State](
+    state: Lens[State, IsHarmonicImproperGraphState],
+    probe: None = None,
+    *,
+    parameters: HarmonicImproperParameters,
+    gradient: Lens[Geometry, PositionsAndCell],
+) -> Potential[State, PositionsAndCell, EmptyType, Patch[Any]]: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State, P: Patch[Any]](
+    state: Lens[
+        State, IsCachedHarmonicImproperState[PotentialOut[EmptyType, EmptyType]]
+    ],
+    probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
+    *,
+    parameters: HarmonicImproperParameters,
+    gradient: None = None,
+) -> Potential[State, EmptyType, EmptyType, P]: ...
+
+
+@overload
+def make_harmonic_improper_from_state[State, P: Patch[Any]](
+    state: Lens[
+        State, IsCachedHarmonicImproperState[PotentialOut[PositionsAndCell, EmptyType]]
+    ],
+    probe: Probe[State, P, IsGraphProbe[IsBondedParticles, Literal[4]]],
+    *,
+    parameters: HarmonicImproperParameters,
+    gradient: Lens[Geometry, PositionsAndCell],
+) -> Potential[State, PositionsAndCell, EmptyType, P]: ...
+
+
+def make_harmonic_improper_from_state(
+    state: Any,
+    probe: Any = None,
+    *,
+    parameters: HarmonicImproperParameters | None = None,
+    gradient: Lens[Geometry, PositionsAndCell] | None = None,
+) -> Any:
+    """Create a harmonic improper potential, optionally with incremental updates.
+
+    Convenience wrapper around
+    [make_harmonic_improper_potential][kups.potential.classical.harmonic.make_harmonic_improper_potential].
+
+    Args:
+        state: Lens into the sub-state providing particles, cell, and improper
+            indices (plus ``harmonic_improper_parameters`` when ``parameters`` is
+            not given).
+        probe: If provided, detects particle changes and supplies the
+            before/after fixed-edge neighbor lists for incremental updates.
+            Those neighbor lists carry any required update capacity.
+        parameters: Constant harmonic improper parameters. When given they are
+            bound with a constant lens and the state need not carry
+            ``harmonic_improper_parameters``; with a ``probe``, the cache is read
+            from ``state.harmonic_improper_cache``.
+        gradient: Relaxation filter ``Lens[Geometry, PositionsAndCell]`` selecting the
+            optimizer DOFs. ``None`` computes no gradients (the default). Composed with
+            ``GRAPH_GEOMETRY`` into the potential's gradient lens.
+
+    Returns:
+        Configured harmonic improper [Potential][kups.core.potential.Potential].
+    """
+    gradient_lens: Any = EMPTY_LENS
+    patch_idx_view: Any = None
+    if gradient is not None:
+        gradient_lens = GRAPH_GEOMETRY.nest(gradient)
+        patch_idx_view = position_and_cell_idx_view
+    if parameters is not None:
+        param_view = const_lens(parameters)
+    else:
+        param_view = state.focus(
+            lambda x: (
+                x.harmonic_improper_parameters.data
+                if isinstance(x.harmonic_improper_parameters, HasCache)
+                else x.harmonic_improper_parameters
+            )
+        )
+    cache_view = None
+    if probe is not None:
+        if parameters is None:
+            param_view = state.focus(lambda x: x.harmonic_improper_parameters.data)
+            cache_view = state.focus(lambda x: x.harmonic_improper_parameters.cache)
+        else:
+            cache_view = state.focus(lambda x: x.harmonic_improper_cache)
+        patch_idx_view = patch_idx_view or empty_patch_idx_view
+    return make_harmonic_improper_potential(
+        state.focus(lambda x: x.particles),
+        state.focus(lambda x: x.improper_edge_indices),
         state.focus(lambda x: x.systems),
         param_view,
         probe,

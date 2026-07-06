@@ -34,8 +34,11 @@ from .ewald import EwaldParameters, make_ewald_potential
 from .harmonic import (
     HarmonicAngleParameters,
     HarmonicBondParameters,
+    HarmonicImproperParameters,
+    harmonic_improper_energy,
     make_harmonic_angle_potential,
     make_harmonic_bond_potential,
+    make_harmonic_improper_potential,
 )
 from .uff_inversion import (
     UFFInversionParameters,
@@ -72,6 +75,7 @@ __all__ = [
     "make_ewald_potential",
     "make_harmonic_angle_potential",
     "make_harmonic_bond_potential",
+    "make_harmonic_improper_potential",
     "make_uff_inversion_potential",
     "make_morse_bond_potential",
     "make_repulsion_potential",
@@ -87,6 +91,8 @@ __all__ = [
     "EwaldParameters",
     "HarmonicAngleParameters",
     "HarmonicBondParameters",
+    "HarmonicImproperParameters",
+    "harmonic_improper_energy",
     "UFFInversionParameters",
     "uff_inversion_energy",
     "MorseBondParameters",
